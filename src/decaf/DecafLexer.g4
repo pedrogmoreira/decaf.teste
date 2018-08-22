@@ -24,7 +24,7 @@ WS_ : (' ' | '\n' ) -> skip;
 
 SL_COMMENT : '//' (~'\n')* '\n' -> skip;
 
-CHAR : '\'' (ESC|~'\'') '\'';
+CHAR : '\'' (ESC|[\u0020-\u007E]) '\'';
 STRING : '"' (ESC|~'"')* '"';
 
 fragment
