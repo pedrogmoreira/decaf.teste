@@ -39,6 +39,12 @@ class Main {
 		        				break;
 							case DecafLexer.STRING:
 		        				type = " STRINGLITERAL";
+								break;
+							case DecafLexer.INT:
+		        				type = " INTLITERAL";
+								break;
+							case DecafLexer.OP:
+		        				type = " OPERATOR";
 		        				break;
 							}
 		        			System.out.println (token.getLine() + type + " " + text);
