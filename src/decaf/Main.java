@@ -43,8 +43,8 @@ class Main {
 							case DecafLexer.INT:
 		        				type = " INTLITERAL";
 								break;
-							case DecafLexer.OP:
-		        				type = " OPERATOR";
+							case DecafLexer.BOOLEAN:
+		        				type = " BOOLEANLITERAL";
 		        				break;
 							}
 		        			System.out.println (token.getLine() + type + " " + text);
