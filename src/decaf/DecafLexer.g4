@@ -50,7 +50,7 @@ ASSIGN_OP : '+=' | '-=' | '*=' | '/=';
 BINARY_OP: '||' | '&&' | '>' | '<' | '>=' | '<=' | '==' | '!=';
 ARITHMETIC_OP: '+' | '-' | '*' | '/' | '%';
 
-
+ID: ('_' | LETTER) ('_' | LETTER | NUMBER)*;
 
 fragment ESC :  '\\' ('n' | 't' | 'r' | '"' | '\\' | '\'');
 fragment ASCII_ACCEPT: [\u0020-\u0021 | \u0023-\u0026 | \u0028-\u005B | \u005D-\u007E];
