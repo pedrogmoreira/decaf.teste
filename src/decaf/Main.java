@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import java6035.tools.CLI.*;
+import org.antlr.v4.runtime.RecognitionException;
 
 class Main {
     public static void main(String[] args) {
@@ -45,7 +46,11 @@ class Main {
 								break;
 							case DecafLexer.BOOLEAN:
 		        				type = " BOOLEANLITERAL";
-		        				break;
+								break;
+							case DecafLexer.HEX_ERROR:
+								throw new Exception("line " + 
+									token.getLine() + "," + token.getCharPositionInLine() +
+									": Invalid hexadecimal literal \'0x\'");
 							}
 		        			System.out.println (token.getLine() + type + " " + text);
 		        		}

@@ -36,8 +36,9 @@ COMMA : ',';
 SEMICOLLON : ';';
 
 WS_ : (' ' | '\n' | '\t' | '\r' ) -> skip;
-
 SL_COMMENT : '//' (~'\n')* '\n' -> skip;
+
+HEX_ERROR: '0x';
 
 CHAR : '\'' (ESC | ASCII_ACCEPT) '\'';
 STRING : '"' (ESC | ASCII_ACCEPT)* '"';
@@ -50,12 +51,12 @@ ASSIGN_OP : '+=' | '-=' | '*=' | '/=';
 BINARY_OP: '||' | '&&' | '>' | '<' | '>=' | '<=' | '==' | '!=';
 ARITHMETIC_OP: '+' | '-' | '*' | '/' | '%';
 
-ID: ('_' | LETTER) ('_' | LETTER | NUMBER)*;
+ID: ('_' | LETTER) ('_' | LETTER | DIGIT)*;
 
 fragment ESC :  '\\' ('n' | 't' | 'r' | '"' | '\\' | '\'');
 fragment ASCII_ACCEPT: [\u0020-\u0021 | \u0023-\u0026 | \u0028-\u005B | \u005D-\u007E];
-fragment NUMBER: [0-9];
-fragment INTEGER_LITERAL: NUMBER+ WS_;
+fragment DIGIT: [0-9];
+fragment INTEGER_LITERAL: DIGIT+;
 fragment LETTER: [a-zA-Z];
 fragment HEX_DIGIT: [0-9a-fA-F];
 fragment HEX_PREFIX: '0x';
