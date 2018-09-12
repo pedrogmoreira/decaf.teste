@@ -14,8 +14,8 @@ tokens
   TK_class
 }
 
-PROGRAM: 'Program';
 CLASS: 'class';
+PROGRAM: 'Program';
 TYPE: 'int' | 'boolean';
 CALLOUT: 'callout';
 IF: 'if';
