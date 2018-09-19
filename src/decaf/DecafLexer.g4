@@ -48,8 +48,11 @@ BOOLEAN: TRUE | FALSE;
 NEGATION: '!';
 ASSIGN: '=';
 ASSIGN_OP : '+=' | '-=' | '*=' | '/=';
-BINARY_OP: '||' | '&&' | '>' | '<' | '>=' | '<=' | '==' | '!=';
-ARITHMETIC_OP: '+' | '-' | '*' | '/' | '%';
+CONDITIONAL_OP: '||' | '&&';
+RELATIONAL_OP: '>' | '<' | '>=' | '<=';
+EQUAL_OP: '==' | '!=';
+ARITHMETIC_OP: '+' | '*' | '/' | '%';
+MINUS: '-';
 
 ID: ('_' | LETTER) ('_' | LETTER | DIGIT)*;
 
