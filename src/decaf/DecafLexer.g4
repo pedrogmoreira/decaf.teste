@@ -16,8 +16,8 @@ tokens
 
 CLASS: 'class';
 PROGRAM: 'Program';
-TYPE: 'int' | 'boolean';
 CALLOUT: 'callout';
+TYPE: 'int' | 'boolean';
 IF: 'if';
 ELSE: 'else';
 FOR: 'for';
