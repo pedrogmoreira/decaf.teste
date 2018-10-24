@@ -1,4 +1,6 @@
 package decaf;
+
+import java.util.HashMap;
 import java.util.List;
 import org.antlr.symtab.FunctionSymbol;
 import org.antlr.symtab.GlobalScope;
@@ -19,11 +21,12 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     ParseTreeProperty<Scope> scopes = new ParseTreeProperty<Scope>();
     GlobalScope globals;
     Scope currentScope; // define symbols in this scope
+    HashMap<String,Integer> methodArgs;
 
     @Override
     public void enterProgram(DecafParser.ProgramContext ctx) {
-        int [] a = new int[0];
         globals = new GlobalScope(null);
+        methodArgs = new HashMap();
         pushScope(globals);
     }
 
@@ -48,6 +51,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         // function.setType(type); // Set symbol type
 
         currentScope.define(function); // Define function in current scope
+        methodArgs.put(name, ctx.argument_list().TYPE().size());
         saveScope(ctx, function);
         pushScope(function);
     }
@@ -67,6 +71,14 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     @Override
     public void exitBlock(DecafParser.BlockContext ctx) {
         popScope();
+    }
+
+    @Override public void enterMethod_call(DecafParser.Method_callContext ctx) 
+    {
+        if (ctx.method_call_arguments().expression().size() != methodArgs.get(ctx.method_name().ID().getSymbol().getText()))
+        {
+            this.error(ctx.method_name().ID().getSymbol(), "argument mismatch: " + ctx.method_name().ID().getSymbol().getText());
+        }
     }
 
     @Override public void enterField_declaration(DecafParser.Field_declarationContext ctx) { 
