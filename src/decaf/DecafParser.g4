@@ -31,10 +31,12 @@ statement: location assign_operator expression SEMICOLLON
           | method_call SEMICOLLON
           | if_block
           | for_block
-          | RETURN expression? SEMICOLLON
+          | return_statement
           | BREAK SEMICOLLON
           | CONTINUE SEMICOLLON
           | block;
+
+return_statement: RETURN expression? SEMICOLLON;
 
 assign_operator: ASSIGN_OP | ASSIGN;
 

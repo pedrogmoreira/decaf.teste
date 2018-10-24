@@ -64,6 +64,12 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             function.define(parameter);
         }
 
+        ctx.block().statement().forEach(stmt -> 
+            {
+                if(stmt.return_statement() != null && ctx.method_return().VOID() != null) 
+                    this.error(stmt.return_statement().RETURN().getSymbol(), "should not return value");
+            });
+
         currentScope.define(function); // Define function in current scope
         saveScope(ctx, function);
         pushScope(function);
@@ -128,10 +134,6 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                     else if (context.INT() != null)
                     {
                         this.error(context.INT().getSymbol(), "type don't match signature");
-                    }
-                    else if (context.CHAR() != null)
-                    {
-                        this.error(context.CHAR().getSymbol(), "type don't match signature");
                     }
                 }
                 
@@ -233,13 +235,6 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     private void popScope() {
         System.out.println("leaving: "+currentScope.getName()+":"+currentScope);
         currentScope = currentScope.getEnclosingScope();
-    }
-
-    public boolean isBoolean(String bool)
-    {
-        if (bool.equals("false") || bool.equals("true")) return true;
-
-        return false;
     }
 
     public static void error(Token t, String msg) {
