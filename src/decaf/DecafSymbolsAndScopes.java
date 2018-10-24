@@ -1,4 +1,5 @@
 package decaf;
+import java.util.List;
 import org.antlr.symtab.FunctionSymbol;
 import org.antlr.symtab.GlobalScope;
 import org.antlr.symtab.LocalScope;
@@ -28,6 +29,11 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     @Override
     public void exitProgram(DecafParser.ProgramContext ctx) {
         System.out.println(globals);
+
+        if (globals.resolve("main") == null)
+        {
+            this.error(ctx.RCURLY().getSymbol(), "Método \'main\' não encontrado.");
+        }
     }
 
     @Override
@@ -79,6 +85,25 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         }
     }
 
+    @Override
+    public void enterLocation(DecafParser.LocationContext ctx)
+    {
+        String name = ctx.ID().getSymbol().getText();
+        Symbol var = currentScope.resolve(name);
+        if (ctx. > 0)
+        {
+            this.error(ctx.ID().getSymbol(), "no such variable: "+name);
+        }
+
+        if ( var==null ) {
+            this.error(ctx.ID().getSymbol(), "no such variable: "+name);
+        }
+        if ( var instanceof FunctionSymbol ) {
+            this.error(ctx.ID().getSymbol(), name+" is not a variable");
+        }
+
+    }
+
     void defineVar(DecafSymbol.Type typeCtx, Token nameToken) {
         //int typeTokenType = typeCtx.getTypeIndex();
         VariableSymbol var = new VariableSymbol(nameToken.getText());
@@ -86,7 +111,16 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         // DecafSymbol.Type type = this.getType(typeTokenType);
         var.setType(typeCtx);
 
-        currentScope.define(var); // Define symbol in current scope
+        List symbols = currentScope.getSymbols();
+
+        if (!symbols.contains(var)) 
+        {
+            currentScope.define(var); // Define symbol in current scope
+        } 
+        else
+        {
+            this.error(nameToken, "Variável já declarada");
+        }
     }
 
     /**
