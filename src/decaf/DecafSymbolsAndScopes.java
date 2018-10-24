@@ -22,6 +22,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
     @Override
     public void enterProgram(DecafParser.ProgramContext ctx) {
+        int [] a = new int[0];
         globals = new GlobalScope(null);
         pushScope(globals);
     }
@@ -68,8 +69,23 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         popScope();
     }
 
+    @Override public void enterField_declaration(DecafParser.Field_declarationContext ctx) { 
+        if (Integer.parseInt(ctx.INT().getSymbol().getText()) <= 0)
+        {
+            this.error(ctx.INT().getSymbol(), "bad array size: " + ctx.ID().getSymbol().getText());
+        }
+        else
+        {
+            defineVar(this.getType(ctx.TYPE().getSymbol().getType()), ctx.ID().getSymbol());
+        }
+    }
+
     @Override
     public void enterVar_declaration(DecafParser.Var_declarationContext ctx) {
+        if (ctx.ID().size() > 1)
+        {
+            System.err.println(ctx.ID().get(1).getSymbol().getText());
+        }
         defineVar(this.getType(ctx.TYPE().get(0).getSymbol().getType()), ctx.ID().get(0).getSymbol());
     }
 
@@ -90,10 +106,6 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     {
         String name = ctx.ID().getSymbol().getText();
         Symbol var = currentScope.resolve(name);
-        if (ctx. > 0)
-        {
-            this.error(ctx.ID().getSymbol(), "no such variable: "+name);
-        }
 
         if ( var==null ) {
             this.error(ctx.ID().getSymbol(), "no such variable: "+name);
