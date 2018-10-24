@@ -17,7 +17,7 @@ field_block: field_declaration (COMMA field_declaration)* SEMICOLLON;
 field_declaration: TYPE ID 
                   | TYPE ID LSQUARE INT RSQUARE;
 
-method_declaration: method_return ID LPARENT argument_list RPARENT block;
+method_declaration: method_return method_name LPARENT argument_list RPARENT block;
 
 method_return: TYPE | VOID;
 
