@@ -132,7 +132,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     }
 
     @Override public void enterField_declaration(DecafParser.Field_declarationContext ctx) { 
-        if (Integer.parseInt(ctx.INT().getSymbol().getText()) <= 0)
+        if (ctx.INT() != null && Integer.parseInt(ctx.INT().getSymbol().getText()) <= 0)
         {
             this.error(ctx.INT().getSymbol(), "bad array size: " + ctx.ID().getSymbol().getText());
         }
@@ -170,6 +170,23 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     {
         String name = ctx.ID().getSymbol().getText();
         Symbol var = currentScope.resolve(name);
+
+        if (ctx.LSQUARE() != null) {
+            if (ctx.expression().location() != null) 
+            {
+                String locationName = ctx.expression().location().ID().getText();
+                System.out.println(((VariableSymbol) currentScope.resolve(locationName)).getType());
+                DecafSymbol.Type type = (DecafSymbol.Type) ((VariableSymbol) currentScope.resolve(locationName)).getType();
+    
+                if (type != DecafSymbol.Type.tINT) {
+                    this.error(ctx.ID().getSymbol(), "array index has wrong type");
+                }                
+            } 
+            else if (ctx.expression().literal().BOOLEAN() != null) 
+            {
+                this.error(ctx.ID().getSymbol(), "array index has wrong type");               
+            }
+        }
 
         if ( var==null ) {
             this.error(ctx.ID().getSymbol(), "no such variable: "+name);

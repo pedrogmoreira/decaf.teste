@@ -23,11 +23,11 @@ ant
 #echo '\n------ILLEGAL 07------\n'
 #java -jar dist/Compiler.jar -target inter ../semantics/illegal-07.dcf
 
-echo '\n------ILLEGAL 08------\n'
-java -jar dist/Compiler.jar -target inter ../semantics/illegal-08.dcf
+#echo '\n------ILLEGAL 08------\n'
+#java -jar dist/Compiler.jar -target inter ../semantics/illegal-08.dcf
 
-#echo '\n------ILLEGAL 09------\n'
-#java -jar dist/Compiler.jar -target inter ../semantics/illegal-09.dcf
+echo '\n------ILLEGAL 09------\n'
+java -jar dist/Compiler.jar -target inter ../semantics/illegal-09.dcf
 
 #echo '\n------ILLEGAL 10------\n'
 #java -jar dist/Compiler.jar -target inter ../semantics/illegal-10.dcf
