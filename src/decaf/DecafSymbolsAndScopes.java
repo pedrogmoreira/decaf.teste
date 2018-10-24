@@ -68,6 +68,11 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             {
                 if(stmt.return_statement() != null && ctx.method_return().VOID() != null) 
                     this.error(stmt.return_statement().RETURN().getSymbol(), "should not return value");
+                
+                else if(stmt.return_statement() != null
+                    && (this.getType(ctx.method_return().TYPE().getText()) == DecafSymbol.Type.tINT && stmt.return_statement().expression().literal().INT() == null
+                    || this.getType(ctx.method_return().TYPE().getText()) == DecafSymbol.Type.tBOOLEAN && stmt.return_statement().expression().literal().BOOLEAN() == null))
+                        this.error(stmt.return_statement().RETURN().getSymbol(), "return value has wrong type");
             });
 
         currentScope.define(function); // Define function in current scope
@@ -107,36 +112,21 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             {
                 ParameterSymbol parameter = (ParameterSymbol) method.getSymbols().get(index);
                 DecafSymbol.Type parameterType = (DecafSymbol.Type) parameter.getType();
-
-                String argument;
-                try
-                {
-                    switch (parameterType)
-                    {
-                        case tINT:
-                            argument = ctx.method_call_arguments().expression(index).literal().INT().getSymbol().getText();
-                            break;
-                        case tBOOLEAN:
-                            argument = ctx.method_call_arguments().expression(index).literal().BOOLEAN().getSymbol().getText();
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                catch(Exception e)
-                {
-                    LiteralContext context = ctx.method_call_arguments().expression(index).literal();
-
-                    if (context.BOOLEAN() != null)
-                    {
-                        this.error(context.BOOLEAN().getSymbol(), "type don't match signature");
-                    }
-                    else if (context.INT() != null)
-                    {
-                        this.error(context.INT().getSymbol(), "type don't match signature");
-                    }
-                }
                 
+                LiteralContext literalContext = ctx.method_call_arguments().expression(index).literal();
+
+                if (parameterType == DecafSymbol.Type.tBOOLEAN && literalContext.BOOLEAN() == null
+                    || parameterType == DecafSymbol.Type.tINT && literalContext.INT() == null)
+                {
+                    if (literalContext.BOOLEAN() != null) 
+                    {
+                        this.error(literalContext.BOOLEAN().getSymbol(), "type don't match signature"); 
+                    } 
+                    else if (literalContext.INT() != null) 
+                    {
+                        this.error(literalContext.INT().getSymbol(), "type don't match signature"); 
+                    }
+                }
             }
         }
     }
