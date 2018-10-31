@@ -324,6 +324,71 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                         this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "tipo errado com operador RELACIONAL, é necessário dois INTs");
                 }
             }
+
+            // equal operator
+            if (ctx.operators().EQUAL_OP() != null) {
+                
+                if (ctx.expression(0).literal() != null && ctx.expression(1).literal() != null) 
+                {
+                    if (!((ctx.expression(0).literal().INT() != null && ctx.expression(1).literal().INT() != null) ||
+                        (ctx.expression(0).literal().CHAR() != null && ctx.expression(1).literal().CHAR() != null) ||
+                        (ctx.expression(0).literal().BOOLEAN() != null && ctx.expression(1).literal().BOOLEAN() != null)))
+                        this.error(ctx.operators().EQUAL_OP().getSymbol(), "types of operands of == must be equal");
+                }
+
+                if (ctx.expression(0).location() != null && ctx.expression(1).literal() != null) 
+                {
+                    VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(0).location().ID().getSymbol().getText());  
+                    Type type = symbol.getType();
+                    
+                    if (!((type == DecafSymbol.Type.tINT && ctx.expression(1).literal().INT() != null) ||
+                        (type == DecafSymbol.Type.tCHAR && ctx.expression(1).literal().CHAR() != null) ||
+                        (type == DecafSymbol.Type.tBOOLEAN && ctx.expression(1).literal().BOOLEAN() != null)))
+                        this.error(ctx.operators().EQUAL_OP().getSymbol(), "types of operands of == must be equal");
+                }
+
+                if (ctx.expression(0).literal() != null && ctx.expression(1).location() != null) 
+                {
+                    VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(1).location().ID().getSymbol().getText());  
+                    Type type = symbol.getType();
+                    
+                    if (!((type == DecafSymbol.Type.tINT && ctx.expression(0).literal().INT() != null) ||
+                        (type == DecafSymbol.Type.tCHAR && ctx.expression(0).literal().CHAR() != null) ||
+                        (type == DecafSymbol.Type.tBOOLEAN && ctx.expression(0).literal().BOOLEAN() != null)))
+                        this.error(ctx.operators().EQUAL_OP().getSymbol(), "types of operands of == must be equal");
+                }
+
+                if (ctx.expression(0).location() != null && ctx.expression(1).location() != null) 
+                {
+                    VariableSymbol symbol1 = (VariableSymbol) currentScope.resolve(ctx.expression(0).location().ID().getSymbol().getText());  
+                    Type type1 = symbol1.getType();
+
+                    VariableSymbol symbol2 = (VariableSymbol) currentScope.resolve(ctx.expression(1).location().ID().getSymbol().getText());  
+                    Type type2 = symbol2.getType();
+                    
+                    if (type1 != type2)
+                        this.error(ctx.operators().EQUAL_OP().getSymbol(), "types of operands of == must be equal");
+                }
+            }
+        }
+
+        if (ctx.NEGATION() != null)
+        {
+            if (ctx.expression(0).literal() != null)
+            {
+                if (ctx.expression(0).literal().BOOLEAN() == null) {
+                    this.error(ctx.NEGATION().getSymbol(), "operand of ! must be boolean");
+                }
+            }
+            else if (ctx.expression(0).location() != null)
+            {
+                VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(0).location().ID().getSymbol().getText());  
+                Type type = symbol.getType();
+
+                if (type != DecafSymbol.Type.tBOOLEAN) {
+                    this.error(ctx.NEGATION().getSymbol(), "operand of ! must be boolean");
+                }
+            }
         }
     }
 
