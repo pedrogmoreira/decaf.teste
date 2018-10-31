@@ -285,6 +285,48 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         }
     }
 
+    @Override 
+    public void enterExpression(DecafParser.ExpressionContext ctx) 
+    { 
+        if (ctx.operators() != null)
+        {
+            if (ctx.operators().RELATIONAL_OP() != null) {
+                
+                //verificar literal
+                if (ctx.expression(0).literal() != null) 
+                {
+                    if (ctx.expression(0).literal().INT() == null)
+                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "tipo errado com operador RELACIONAL, é necessário dois INTs");
+                }
+
+                if (ctx.expression(1).literal() != null) 
+                {
+                    if (ctx.expression(1).literal().INT() == null)
+                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "tipo errado com operador RELACIONAL, é necessário dois INTs");
+                }
+
+                //verificar symbol
+                if (ctx.expression(0).location() != null) 
+                {
+                    VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(0).location().ID().getSymbol().getText());  
+                    Type type = symbol.getType();
+
+                    if (type != DecafSymbol.Type.tINT || type != DecafSymbol.Type.tINT_ARRAY)
+                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "tipo errado com operador RELACIONAL, é necessário dois INTs");
+                }
+
+                if (ctx.expression(1).location() != null) 
+                {
+                    VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(1).location().ID().getSymbol().getText());  
+                    Type type = symbol.getType();
+
+                    if (type != DecafSymbol.Type.tINT || type != DecafSymbol.Type.tINT_ARRAY)
+                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "tipo errado com operador RELACIONAL, é necessário dois INTs");
+                }
+            }
+        }
+    }
+
     void defineVar(DecafSymbol.Type typeCtx, Token nameToken) {
         //int typeTokenType = typeCtx.getTypeIndex();
         VariableSymbol var = new VariableSymbol(nameToken.getText());
