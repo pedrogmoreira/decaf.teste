@@ -255,6 +255,23 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         }
     }
 
+    @Override 
+    public void enterFor_block(DecafParser.For_blockContext ctx) 
+    { 
+        if (ctx.expression(0).literal().INT() == null) {
+            this.error(ctx.ASSIGN().getSymbol(), "primeira condição desse ser do tipo INT");
+        }
+        else if(ctx.expression(0).location() != null)
+        {
+            VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(0).location().ID().getSymbol().getText());  
+            Type type = symbol.getType();
+
+            if (type != DecafSymbol.Type.tINT || type != DecafSymbol.Type.tINT_ARRAY) {
+                this.error(ctx.ASSIGN().getSymbol(), "primeira condição desse ser do tipo INT");
+            }
+        }
+    }
+
     void defineVar(DecafSymbol.Type typeCtx, Token nameToken) {
         //int typeTokenType = typeCtx.getTypeIndex();
         VariableSymbol var = new VariableSymbol(nameToken.getText());
