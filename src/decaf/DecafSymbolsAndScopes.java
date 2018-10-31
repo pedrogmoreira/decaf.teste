@@ -208,13 +208,13 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     public void enterStatement(DecafParser.StatementContext ctx) 
     { 
         // verificar atribuição de variavel
-        if (ctx.location().ID() != null) 
+        if (ctx.location() != null) 
         {
             VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.location().ID().getSymbol().getText());  
             Type type = symbol.getType();
             
             // verificar tipo de atribuicao com variavel
-            if (ctx.expression().location().ID() != null) 
+            if (ctx.expression().location() != null) 
             {
                 VariableSymbol symbol2 = (VariableSymbol) currentScope.resolve(ctx.expression().location().ID().getSymbol().getText());  
                 Type type2 = symbol2.getType();
@@ -234,6 +234,24 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                     this.error(ctx.location().ID().getSymbol(), "tipo incorreto em atribuição");
                 }
             }
+        }
+    }
+
+    @Override 
+    public void enterIf_block(DecafParser.If_blockContext ctx) 
+    { 
+        //verificar se variavel é BOOLEAN
+        if (ctx.expression().location() != null) {
+            VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression().location().ID().getSymbol().getText());  
+            Type type = symbol.getType();
+
+            if (type != DecafSymbol.Type.tBOOLEAN || type != DecafSymbol.Type.tBOOLEAN_ARRAY) {
+                this.error(ctx.LPARENT().getSymbol(), "condição deve ser do tipo BOOLEAN");
+            }
+        }
+        //verificar se literal é BOOLEAN
+        else if (ctx.expression().literal().BOOLEAN() == null) {
+            this.error(ctx.LPARENT().getSymbol(), "condição deve ser do tipo BOOLEAN");
         }
     }
 
