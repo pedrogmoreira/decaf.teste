@@ -47,8 +47,8 @@ ant
 #echo '\n------ILLEGAL 15------\n'
 #java -jar dist/Compiler.jar -target inter ../semantics/illegal-15.dcf
 
-echo '\n------ILLEGAL 16------\n'
-java -jar dist/Compiler.jar -target inter ../semantics/illegal-16.dcf
+#echo '\n------ILLEGAL 16------\n'
+#java -jar dist/Compiler.jar -target inter ../semantics/illegal-16.dcf
 
-#echo '\n------ILLEGAL 17------\n'
-#java -jar dist/Compiler.jar -target inter ../semantics/illegal-17.dcf
+echo '\n------ILLEGAL 17------\n'
+java -jar dist/Compiler.jar -target inter ../semantics/illegal-17.dcf

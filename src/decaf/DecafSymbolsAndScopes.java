@@ -207,6 +207,35 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     @Override 
     public void enterStatement(DecafParser.StatementContext ctx) 
     { 
+        if (ctx.assign_operator() != null)
+        {
+            Token token = (ctx.assign_operator().ASSIGN() != null) ? ctx.assign_operator().ASSIGN().getSymbol() : ctx.assign_operator().ASSIGN_OP().getSymbol();
+            
+            if (ctx.location() != null)
+            {
+                VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.location().ID().getSymbol().getText());  
+                Type type = symbol.getType();
+
+                if (type != DecafSymbol.Type.tINT)
+                    this.error(token, "o operador " + token.getText() + " aceita apenas INTs");
+            }
+
+            if (ctx.expression().location() != null)
+            {
+                VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression().location().ID().getSymbol().getText());  
+                Type type = symbol.getType();
+
+                if (type != DecafSymbol.Type.tINT)
+                    this.error(token, "o operador " + token.getText() + " aceita apenas INTs");
+            }
+
+            if (ctx.expression().literal() != null)
+            {
+                if (ctx.expression().literal().INT() == null)
+                    this.error(token, "o operador " + token.getText() + " aceita apenas INTs");
+            }
+        }
+
         // verificar atribuição de variavel
         if (ctx.location() != null) 
         {
@@ -290,8 +319,8 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     { 
         if (ctx.operators() != null)
         {
-            if (ctx.operators().RELATIONAL_OP() != null) {
-                
+            if (ctx.operators().RELATIONAL_OP() != null) 
+            {                
                 //verificar literal
                 if (ctx.expression(0).literal() != null) 
                 {
@@ -326,8 +355,8 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             }
 
             // equal operator
-            if (ctx.operators().EQUAL_OP() != null) {
-                
+            if (ctx.operators().EQUAL_OP() != null) 
+            {                
                 if (ctx.expression(0).literal() != null && ctx.expression(1).literal() != null) 
                 {
                     if (!((ctx.expression(0).literal().INT() != null && ctx.expression(1).literal().INT() != null) ||
