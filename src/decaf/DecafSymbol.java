@@ -14,7 +14,7 @@ import org.antlr.symtab.Type;
 
 public class DecafSymbol { // A generic programming language symbol
     public static enum Type implements org.antlr.symtab.Type {
-        tINVALID, tVOID, tINT, tBOOLEAN, tCHAR;
+        tINVALID, tVOID, tINT, tBOOLEAN, tCHAR, tINT_ARRAY, tBOOLEAN_ARRAY, tCHAR_ARRAY;
 
         @Override
         public String getName() { return this.name(); }

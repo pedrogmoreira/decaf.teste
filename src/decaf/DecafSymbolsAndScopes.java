@@ -138,7 +138,14 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         }
         else
         {
-            defineVar(this.getType(ctx.TYPE().getText()), ctx.ID().getSymbol());
+            if (ctx.INT() != null)
+            {
+                defineVar(this.getType(ctx.TYPE().getText() + "_array"), ctx.ID().getSymbol());
+            }
+            else
+            {
+                defineVar(this.getType(ctx.TYPE().getText()), ctx.ID().getSymbol());
+            }
         }
     }
 
@@ -195,6 +202,39 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             this.error(ctx.ID().getSymbol(), name+" is not a variable");
         }
 
+    }
+
+    @Override 
+    public void enterStatement(DecafParser.StatementContext ctx) 
+    { 
+        // verificar atribuição de variavel
+        if (ctx.location().ID() != null) 
+        {
+            VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.location().ID().getSymbol().getText());  
+            Type type = symbol.getType();
+            
+            // verificar tipo de atribuicao com variavel
+            if (ctx.expression().location().ID() != null) 
+            {
+                VariableSymbol symbol2 = (VariableSymbol) currentScope.resolve(ctx.expression().location().ID().getSymbol().getText());  
+                Type type2 = symbol2.getType();
+
+                if ((type == DecafSymbol.Type.tINT_ARRAY && type2 != DecafSymbol.Type.tINT) ||
+                    (type == DecafSymbol.Type.tBOOLEAN_ARRAY && type2 != DecafSymbol.Type.tBOOLEAN) ||
+                    (type == DecafSymbol.Type.tCHAR_ARRAY && type2 != DecafSymbol.Type.tCHAR)) {
+                    this.error(ctx.location().ID().getSymbol(), "tipo incorreto em atribuição");
+                }
+            }
+            // verificar tipo de atribuicao com literal
+            else if (ctx.expression().literal() != null)
+            {
+                if ((ctx.expression().literal().CHAR() != null && type != DecafSymbol.Type.tCHAR_ARRAY) ||
+                    (ctx.expression().literal().INT() != null && type != DecafSymbol.Type.tINT_ARRAY) ||
+                    (ctx.expression().literal().BOOLEAN() != null && type != DecafSymbol.Type.tBOOLEAN_ARRAY)) {
+                    this.error(ctx.location().ID().getSymbol(), "tipo incorreto em atribuição");
+                }
+            }
+        }
     }
 
     void defineVar(DecafSymbol.Type typeCtx, Token nameToken) {
@@ -261,9 +301,10 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             case "int":   return DecafSymbol.Type.tINT;
             case "char":   return DecafSymbol.Type.tCHAR;
             case "boolean":   return DecafSymbol.Type.tBOOLEAN;
+            case "int_array":   return DecafSymbol.Type.tINT_ARRAY;
+            case "char_array":   return DecafSymbol.Type.tCHAR_ARRAY;
+            case "boolean_array":   return DecafSymbol.Type.tBOOLEAN_ARRAY;
         }
         return DecafSymbol.Type.tINVALID;
     }
-
-
 }
