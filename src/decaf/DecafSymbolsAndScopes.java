@@ -213,11 +213,15 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             
             if (ctx.location() != null)
             {
-                VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.location().ID().getSymbol().getText());  
-                Type type = symbol.getType();
-
-                if (type != DecafSymbol.Type.tINT)
-                    this.error(token, "o operador " + token.getText() + " aceita apenas INTs");
+                try {
+                    VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.location().ID().getSymbol().getText());  
+                    Type type = symbol.getType();
+    
+                    if (type != DecafSymbol.Type.tINT)
+                        this.error(token, "o operador " + token.getText() + " aceita apenas INTs");
+                } catch (Exception e) {
+                    this.error(token, "variavel nao existe no contexto");
+                }
             }
 
             if (ctx.expression().location() != null)
@@ -239,42 +243,52 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         // verificar atribuição de variavel
         if (ctx.location() != null) 
         {
-            VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.location().ID().getSymbol().getText());  
-            Type type = symbol.getType();
-            
-            // verificar tipo de atribuicao com variavel
-            if (ctx.expression().location() != null) 
-            {
-                VariableSymbol symbol2 = (VariableSymbol) currentScope.resolve(ctx.expression().location().ID().getSymbol().getText());  
-                Type type2 = symbol2.getType();
-
-                if ((type == DecafSymbol.Type.tINT_ARRAY && type2 != DecafSymbol.Type.tINT) ||
-                    (type == DecafSymbol.Type.tBOOLEAN_ARRAY && type2 != DecafSymbol.Type.tBOOLEAN) ||
-                    (type == DecafSymbol.Type.tCHAR_ARRAY && type2 != DecafSymbol.Type.tCHAR)) {
-                    this.error(ctx.location().ID().getSymbol(), "tipo incorreto em atribuição");
-                }
-            }
-            // verificar tipo de atribuicao com literal
-            else if (ctx.expression().literal() != null)
-            {
-                if ((ctx.expression().literal().CHAR() != null && type != DecafSymbol.Type.tCHAR_ARRAY) ||
-                    (ctx.expression().literal().INT() != null && type != DecafSymbol.Type.tINT_ARRAY) ||
-                    (ctx.expression().literal().BOOLEAN() != null && type != DecafSymbol.Type.tBOOLEAN_ARRAY)) 
+           try {
+                VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.location().ID().getSymbol().getText());  
+                Type type = symbol.getType();
+                
+                // verificar tipo de atribuicao com variavel
+                if (ctx.expression().location() != null) 
                 {
-                    this.error(ctx.location().ID().getSymbol(), "tipo incorreto em atribuição");
+                    VariableSymbol symbol2 = (VariableSymbol) currentScope.resolve(ctx.expression().location().ID().getSymbol().getText());  
+                    Type type2 = symbol2.getType();
+    
+                    if ((type == DecafSymbol.Type.tINT_ARRAY && type2 != DecafSymbol.Type.tINT) ||
+                        (type == DecafSymbol.Type.tBOOLEAN_ARRAY && type2 != DecafSymbol.Type.tBOOLEAN) ||
+                        (type == DecafSymbol.Type.tCHAR_ARRAY && type2 != DecafSymbol.Type.tCHAR)) {
+                        this.error(ctx.location().ID().getSymbol(), "tipo incorreto em atribuição");
+                    }
                 }
-            }
-            
-            if (type == DecafSymbol.Type.tINT || type == DecafSymbol.Type.tINT_ARRAY)
-            {
-                if ((ctx.expression().literal() != null && ctx.expression().literal().INT() == null) ||
-                    (ctx.expression().operators().CONDITIONAL_OP() != null) ||
-                    (ctx.expression().operators().RELATIONAL_OP() != null) ||
-                    (ctx.expression().operators().EQUAL_OP() != null) ||
-                    (ctx.expression().NEGATION() != null)) 
+                // verificar tipo de atribuicao com literal
+                else if (ctx.expression().literal() != null)
                 {
-                    this.error(ctx.location().ID().getSymbol(), "atribuição deve ser um INT");
+                    if ((ctx.expression().literal().CHAR() != null && type != DecafSymbol.Type.tCHAR_ARRAY) ||
+                        (ctx.expression().literal().INT() != null && type != DecafSymbol.Type.tINT_ARRAY) ||
+                        (ctx.expression().literal().BOOLEAN() != null && type != DecafSymbol.Type.tBOOLEAN_ARRAY)) 
+                    {
+                        this.error(ctx.location().ID().getSymbol(), "tipo incorreto em atribuição");
+                    }
                 }
+                
+                if (type == DecafSymbol.Type.tINT || type == DecafSymbol.Type.tINT_ARRAY)
+                {
+                    if (ctx.expression().NEGATION() != null) 
+                        this.error(ctx.location().ID().getSymbol(), "atribuição deve ser um INT");
+                    
+                    if (ctx.expression().operators() != null)
+                    {
+                        if ((ctx.expression().operators().CONDITIONAL_OP() != null) ||
+                            (ctx.expression().operators().RELATIONAL_OP() != null) ||
+                            (ctx.expression().operators().EQUAL_OP() != null))
+                            this.error(ctx.location().ID().getSymbol(), "atribuição deve ser um INT");
+                    }
+                    
+                    if (ctx.expression().literal() != null)
+                        if (ctx.expression().literal().INT() == null)
+                            this.error(ctx.location().ID().getSymbol(), "atribuição deve ser um INT");
+                }
+            } catch (Exception e) {
+                this.error(ctx.location().ID().getSymbol(), "variavel nao declarada");
             }
         }
     }
