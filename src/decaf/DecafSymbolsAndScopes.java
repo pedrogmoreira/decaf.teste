@@ -230,8 +230,21 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             {
                 if ((ctx.expression().literal().CHAR() != null && type != DecafSymbol.Type.tCHAR_ARRAY) ||
                     (ctx.expression().literal().INT() != null && type != DecafSymbol.Type.tINT_ARRAY) ||
-                    (ctx.expression().literal().BOOLEAN() != null && type != DecafSymbol.Type.tBOOLEAN_ARRAY)) {
+                    (ctx.expression().literal().BOOLEAN() != null && type != DecafSymbol.Type.tBOOLEAN_ARRAY)) 
+                {
                     this.error(ctx.location().ID().getSymbol(), "tipo incorreto em atribuição");
+                }
+            }
+            
+            if (type == DecafSymbol.Type.tINT || type == DecafSymbol.Type.tINT_ARRAY)
+            {
+                if ((ctx.expression().literal() != null && ctx.expression().literal().INT() == null) ||
+                    (ctx.expression().operators().CONDITIONAL_OP() != null) ||
+                    (ctx.expression().operators().RELATIONAL_OP() != null) ||
+                    (ctx.expression().operators().EQUAL_OP() != null) ||
+                    (ctx.expression().NEGATION() != null)) 
+                {
+                    this.error(ctx.location().ID().getSymbol(), "atribuição deve ser um INT");
                 }
             }
         }
