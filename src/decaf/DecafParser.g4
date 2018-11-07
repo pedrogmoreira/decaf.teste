@@ -25,7 +25,7 @@ argument_list: (TYPE ID (COMMA TYPE ID)*)?;
 
 block: LCURLY var_declaration* statement* RCURLY;
 
-var_declaration: (TYPE ID (COMMA ID)*)* SEMICOLLON;
+var_declaration: TYPE (ID (COMMA ID)*)* SEMICOLLON;
 
 statement: location assign_operator expression SEMICOLLON
           | method_call SEMICOLLON

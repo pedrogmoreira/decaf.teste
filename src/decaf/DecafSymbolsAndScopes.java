@@ -34,8 +34,6 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
     @Override
     public void exitProgram(DecafParser.ProgramContext ctx) {
-        System.out.println(globals);
-
         if (globals.resolve("main") == null)
         {
             this.error(ctx.RCURLY().getSymbol(), "Método \'main\' não encontrado.");
@@ -58,7 +56,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             String parameterName = ctx.argument_list().ID(index).getSymbol().getText();
             decaf.DecafSymbol.Type parameterType = this.getType(ctx.argument_list().TYPE(index).getText());
             ParameterSymbol parameter = new ParameterSymbol(parameterName);
-            // System.out.println("Dec_" + ctx.argument_list().TYPE(index);
+
             parameter.setType(parameterType);
 
             function.define(parameter);
@@ -69,10 +67,17 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                 if(stmt.return_statement() != null && ctx.method_return().VOID() != null) 
                     this.error(stmt.return_statement().RETURN().getSymbol(), "should not return value");
                 
-                else if(stmt.return_statement() != null
-                    && (this.getType(ctx.method_return().TYPE().getText()) == DecafSymbol.Type.tINT && stmt.return_statement().expression().literal().INT() == null
-                    || this.getType(ctx.method_return().TYPE().getText()) == DecafSymbol.Type.tBOOLEAN && stmt.return_statement().expression().literal().BOOLEAN() == null))
-                        this.error(stmt.return_statement().RETURN().getSymbol(), "return value has wrong type");
+                else if(stmt.return_statement() != null)
+                {
+                    if (stmt.return_statement().expression().literal() != null)
+                    {
+                        if (this.getType(ctx.method_return().TYPE().getText()) == DecafSymbol.Type.tINT && stmt.return_statement().expression().literal().INT() == null
+                            || this.getType(ctx.method_return().TYPE().getText()) == DecafSymbol.Type.tBOOLEAN && stmt.return_statement().expression().literal().BOOLEAN() == null)
+                        {
+                            this.error(stmt.return_statement().RETURN().getSymbol(), "return value has wrong type");
+                        }
+                    }
+                }
             });
 
         currentScope.define(function); // Define function in current scope
@@ -99,33 +104,39 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
     @Override public void enterMethod_call(DecafParser.Method_callContext ctx) 
     {
-        String methodName = ctx.method_name().ID().getSymbol().getText();
-        FunctionSymbol method = (FunctionSymbol) currentScope.resolve(methodName);
-        
-        if (method.getNumberOfParameters() != ctx.method_call_arguments().expression().size())
+        if (ctx.method_name() != null)
         {
-            this.error(ctx.method_name().ID().getSymbol(), "argument mismatch: " + methodName);
-        }
-        else
-        {
-            for (int index = 0; index < method.getNumberOfParameters(); index++)
+            String methodName = ctx.method_name().ID().getText();
+            FunctionSymbol method = (FunctionSymbol) currentScope.resolve(methodName);
+            
+            if (method.getNumberOfParameters() != ctx.method_call_arguments().expression().size())
             {
-                ParameterSymbol parameter = (ParameterSymbol) method.getSymbols().get(index);
-                DecafSymbol.Type parameterType = (DecafSymbol.Type) parameter.getType();
-                
-                LiteralContext literalContext = ctx.method_call_arguments().expression(index).literal();
-
-                if (parameterType == DecafSymbol.Type.tBOOLEAN && literalContext.BOOLEAN() == null
-                    || parameterType == DecafSymbol.Type.tINT && literalContext.INT() == null)
+                this.error(ctx.method_name().ID().getSymbol(), "argument mismatch: " + methodName);
+            }
+            else
+            {
+                for (int index = 0; index < method.getNumberOfParameters(); index++)
                 {
-                    if (literalContext.BOOLEAN() != null) 
+                    ParameterSymbol parameter = (ParameterSymbol) method.getSymbols().get(index);
+                    DecafSymbol.Type parameterType = (DecafSymbol.Type) parameter.getType();
+                    
+                    LiteralContext literalContext = ctx.method_call_arguments().expression(index).literal();
+
+                    if (literalContext != null)
                     {
-                        this.error(literalContext.BOOLEAN().getSymbol(), "type don't match signature"); 
+                        if  ((parameterType == DecafSymbol.Type.tBOOLEAN && literalContext.BOOLEAN() == null)
+                            || (parameterType == DecafSymbol.Type.tINT && literalContext.INT() == null))
+                        {
+                            if (literalContext.BOOLEAN() != null) 
+                            {
+                                this.error(literalContext.BOOLEAN().getSymbol(), "type don't match signature"); 
+                            } 
+                            else if (literalContext.INT() != null) 
+                            {
+                                this.error(literalContext.INT().getSymbol(), "type don't match signature"); 
+                            }
+                        }                    
                     } 
-                    else if (literalContext.INT() != null) 
-                    {
-                        this.error(literalContext.INT().getSymbol(), "type don't match signature"); 
-                    }
                 }
             }
         }
@@ -151,11 +162,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
 
     @Override
     public void enterVar_declaration(DecafParser.Var_declarationContext ctx) {
-        for (int index = 0; index < ctx.ID().size(); index++) 
-        {
-            defineVar(this.getType(ctx.TYPE().get(index).getText()), ctx.ID().get(index).getSymbol());
-        }
-
+        ctx.ID().forEach(var -> defineVar(this.getType(ctx.TYPE().getText()), var.getSymbol()));
     }
 
     @Override
@@ -182,10 +189,10 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             if (ctx.expression().location() != null) 
             {
                 String locationName = ctx.expression().location().ID().getText();
-                System.out.println(((VariableSymbol) currentScope.resolve(locationName)).getType());
                 DecafSymbol.Type type = (DecafSymbol.Type) ((VariableSymbol) currentScope.resolve(locationName)).getType();
     
-                if (type != DecafSymbol.Type.tINT) {
+                if (type != DecafSymbol.Type.tINT) 
+                {
                     this.error(ctx.ID().getSymbol(), "array index has wrong type");
                 }                
             } 
@@ -215,25 +222,25 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             {
                 try {
                     VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.location().ID().getSymbol().getText());  
-                    Type type = symbol.getType();
-    
-                    if (type != DecafSymbol.Type.tINT)
+                    DecafSymbol.Type type = (DecafSymbol.Type) symbol.getType();
+
+                    if (!(type == DecafSymbol.Type.tINT || type == DecafSymbol.Type.tINT_ARRAY))
                         this.error(token, "o operador " + token.getText() + " aceita apenas INTs");
                 } catch (Exception e) {
                     this.error(token, "variavel nao existe no contexto");
                 }
             }
 
-            if (ctx.expression().location() != null)
+            else if (ctx.expression().location() != null)
             {
                 VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression().location().ID().getSymbol().getText());  
-                Type type = symbol.getType();
+                DecafSymbol.Type type = (DecafSymbol.Type) symbol.getType();
 
                 if (type != DecafSymbol.Type.tINT)
                     this.error(token, "o operador " + token.getText() + " aceita apenas INTs");
             }
 
-            if (ctx.expression().literal() != null)
+            else if (ctx.expression().literal() != null)
             {
                 if (ctx.expression().literal().INT() == null)
                     this.error(token, "o operador " + token.getText() + " aceita apenas INTs");
@@ -245,26 +252,26 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
         {
            try {
                 VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.location().ID().getSymbol().getText());  
-                Type type = symbol.getType();
+                DecafSymbol.Type type = (DecafSymbol.Type) symbol.getType();
                 
                 // verificar tipo de atribuicao com variavel
                 if (ctx.expression().location() != null) 
                 {
                     VariableSymbol symbol2 = (VariableSymbol) currentScope.resolve(ctx.expression().location().ID().getSymbol().getText());  
-                    Type type2 = symbol2.getType();
+                    DecafSymbol.Type type2 = (DecafSymbol.Type) symbol2.getType();
     
-                    if ((type == DecafSymbol.Type.tINT_ARRAY && type2 != DecafSymbol.Type.tINT) ||
-                        (type == DecafSymbol.Type.tBOOLEAN_ARRAY && type2 != DecafSymbol.Type.tBOOLEAN) ||
-                        (type == DecafSymbol.Type.tCHAR_ARRAY && type2 != DecafSymbol.Type.tCHAR)) {
+                    if ((type == DecafSymbol.Type.tINT_ARRAY && !(type2 == DecafSymbol.Type.tINT || type2 == DecafSymbol.Type.tINT_ARRAY)) ||
+                        (type == DecafSymbol.Type.tBOOLEAN_ARRAY && !(type2 == DecafSymbol.Type.tBOOLEAN || type2 == DecafSymbol.Type.tBOOLEAN_ARRAY)) ||
+                        (type == DecafSymbol.Type.tCHAR_ARRAY && !(type2 == DecafSymbol.Type.tCHAR || type2 == DecafSymbol.Type.tCHAR_ARRAY))) {
                         this.error(ctx.location().ID().getSymbol(), "tipo incorreto em atribuição");
                     }
                 }
                 // verificar tipo de atribuicao com literal
                 else if (ctx.expression().literal() != null)
                 {
-                    if ((ctx.expression().literal().CHAR() != null && type != DecafSymbol.Type.tCHAR_ARRAY) ||
-                        (ctx.expression().literal().INT() != null && type != DecafSymbol.Type.tINT_ARRAY) ||
-                        (ctx.expression().literal().BOOLEAN() != null && type != DecafSymbol.Type.tBOOLEAN_ARRAY)) 
+                    if ((ctx.expression().literal().CHAR() != null && !(type == DecafSymbol.Type.tCHAR || type == DecafSymbol.Type.tCHAR_ARRAY)) ||
+                        (ctx.expression().literal().INT() != null && !(type == DecafSymbol.Type.tINT || type == DecafSymbol.Type.tINT_ARRAY)) ||
+                        (ctx.expression().literal().BOOLEAN() != null && !(type == DecafSymbol.Type.tBOOLEAN || type == DecafSymbol.Type.tBOOLEAN_ARRAY))) 
                     {
                         this.error(ctx.location().ID().getSymbol(), "tipo incorreto em atribuição");
                     }
@@ -296,36 +303,64 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
     @Override 
     public void enterIf_block(DecafParser.If_blockContext ctx) 
     { 
+        LocalScope l = new LocalScope(currentScope);
+        saveScope(ctx, currentScope);
+        pushScope(l);
+
         //verificar se variavel é BOOLEAN
         if (ctx.expression().location() != null) {
             VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression().location().ID().getSymbol().getText());  
-            Type type = symbol.getType();
+            DecafSymbol.Type type = (DecafSymbol.Type) symbol.getType();
 
             if (type != DecafSymbol.Type.tBOOLEAN || type != DecafSymbol.Type.tBOOLEAN_ARRAY) {
                 this.error(ctx.LPARENT().getSymbol(), "condição deve ser do tipo BOOLEAN");
             }
         }
         //verificar se literal é BOOLEAN
-        else if (ctx.expression().literal().BOOLEAN() == null) {
-            this.error(ctx.LPARENT().getSymbol(), "condição deve ser do tipo BOOLEAN");
+        else if (ctx.expression().literal() != null) 
+        {
+            if (ctx.expression().literal().BOOLEAN() == null)
+            {
+                this.error(ctx.LPARENT().getSymbol(), "condição deve ser do tipo BOOLEAN");
+            }
         }
+    }
+
+    @Override 
+    public void exitIf_block(DecafParser.If_blockContext ctx) 
+    {
+        popScope();
     }
 
     @Override 
     public void enterFor_block(DecafParser.For_blockContext ctx) 
     { 
-        if (ctx.expression(0).literal().INT() == null) {
+        LocalScope l = new LocalScope(currentScope);
+        saveScope(ctx, currentScope);
+        pushScope(l);
+
+        if (ctx.expression(0).literal() == null && ctx.expression(0).location() != null) 
+        {
             this.error(ctx.ASSIGN().getSymbol(), "primeira condição desse ser do tipo INT");
         }
+
         else if(ctx.expression(0).location() != null)
         {
             VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(0).location().ID().getSymbol().getText());  
-            Type type = symbol.getType();
+            DecafSymbol.Type type = (DecafSymbol.Type) symbol.getType();
 
             if (type != DecafSymbol.Type.tINT || type != DecafSymbol.Type.tINT_ARRAY) {
                 this.error(ctx.ASSIGN().getSymbol(), "primeira condição desse ser do tipo INT");
             }
         }
+
+        this.defineVar(DecafSymbol.Type.tINT, ctx.ID().getSymbol());
+    }
+
+    @Override 
+    public void exitFor_block(DecafParser.For_blockContext ctx) 
+    {
+        popScope();
     }
 
     @Override 
@@ -339,32 +374,29 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                 if (ctx.expression(0).literal() != null) 
                 {
                     if (ctx.expression(0).literal().INT() == null)
-                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "tipo errado com operador RELACIONAL, é necessário dois INTs");
+                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "B tipo errado com operador RELACIONAL, é necessário dois INTs");
+                }
+                else if (ctx.expression(0).location() != null) 
+                {
+                    VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(0).location().ID().getSymbol().getText());  
+                    DecafSymbol.Type type = (DecafSymbol.Type) symbol.getType();
+
+                    if (!(type == DecafSymbol.Type.tINT || type == DecafSymbol.Type.tINT_ARRAY))
+                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "A tipo errado com operador RELACIONAL, é necessário dois INTs");
                 }
 
                 if (ctx.expression(1).literal() != null) 
                 {
                     if (ctx.expression(1).literal().INT() == null)
-                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "tipo errado com operador RELACIONAL, é necessário dois INTs");
+                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "C tipo errado com operador RELACIONAL, é necessário dois INTs");
                 }
-
-                //verificar symbol
-                if (ctx.expression(0).location() != null) 
-                {
-                    VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(0).location().ID().getSymbol().getText());  
-                    Type type = symbol.getType();
-
-                    if (type != DecafSymbol.Type.tINT || type != DecafSymbol.Type.tINT_ARRAY)
-                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "tipo errado com operador RELACIONAL, é necessário dois INTs");
-                }
-
-                if (ctx.expression(1).location() != null) 
+                else if (ctx.expression(1).location() != null) 
                 {
                     VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(1).location().ID().getSymbol().getText());  
-                    Type type = symbol.getType();
+                    DecafSymbol.Type type = (DecafSymbol.Type) symbol.getType();
 
-                    if (type != DecafSymbol.Type.tINT || type != DecafSymbol.Type.tINT_ARRAY)
-                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "tipo errado com operador RELACIONAL, é necessário dois INTs");
+                    if (!(type == DecafSymbol.Type.tINT || type == DecafSymbol.Type.tINT_ARRAY))
+                        this.error(ctx.operators().RELATIONAL_OP().getSymbol(), "D tipo errado com operador RELACIONAL, é necessário dois INTs");
                 }
             }
 
@@ -382,7 +414,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                 if (ctx.expression(0).location() != null && ctx.expression(1).literal() != null) 
                 {
                     VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(0).location().ID().getSymbol().getText());  
-                    Type type = symbol.getType();
+                    DecafSymbol.Type type = (DecafSymbol.Type) symbol.getType();
                     
                     if (!((type == DecafSymbol.Type.tINT && ctx.expression(1).literal().INT() != null) ||
                         (type == DecafSymbol.Type.tCHAR && ctx.expression(1).literal().CHAR() != null) ||
@@ -393,7 +425,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
                 if (ctx.expression(0).literal() != null && ctx.expression(1).location() != null) 
                 {
                     VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(1).location().ID().getSymbol().getText());  
-                    Type type = symbol.getType();
+                    DecafSymbol.Type type = (DecafSymbol.Type) symbol.getType();
                     
                     if (!((type == DecafSymbol.Type.tINT && ctx.expression(0).literal().INT() != null) ||
                         (type == DecafSymbol.Type.tCHAR && ctx.expression(0).literal().CHAR() != null) ||
@@ -426,7 +458,7 @@ public class DecafSymbolsAndScopes extends DecafParserBaseListener {
             else if (ctx.expression(0).location() != null)
             {
                 VariableSymbol symbol = (VariableSymbol) currentScope.resolve(ctx.expression(0).location().ID().getSymbol().getText());  
-                Type type = symbol.getType();
+                DecafSymbol.Type type = (DecafSymbol.Type) symbol.getType();
 
                 if (type != DecafSymbol.Type.tBOOLEAN) {
                     this.error(ctx.NEGATION().getSymbol(), "operand of ! must be boolean");
